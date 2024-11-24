@@ -1,38 +1,45 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-
-const products = [
-  {
-    id: 1,
-    name: "Basic Tee",
-    href: "#",
-    imageSrc:
-      "https://tailwindui.com/plus/img/ecommerce-images/product-page-01-related-product-01.jpg",
-    imageAlt: "Front of men's Basic Tee in black.",
-    price: "$35",
-    color: "Black",
-  },
-
-];
+import Link from 'next/link';
 
 const slides = [
   {
     id: 1,
-    src: "https://tailwindui.com/plus/img/ecommerce-images/product-page-01-related-product-01.jpg",
+    src: "https://images.pexels.com/photos/326055/pexels-photo-326055.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     alt: "Slide 1",
   },
   {
     id: 2,
-    src: "https://tailwindui.com/plus/img/ecommerce-images/product-page-01-related-product-02.jpg",
+    src: "https://images.pexels.com/photos/33045/lion-wild-africa-african.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     alt: "Slide 2",
   },
 ];
 
 export default function Product() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setProducts(data.products);
+    } catch (err) {
+      setError('ไม่สามารถโหลดข้อมูลสินค้าได้');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ปุ่มซ้าย
   const prevSlide = () => {
@@ -102,35 +109,41 @@ export default function Product() {
       <div className="ProductList">
         <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-            Customers also purchased
+            สินค้าทั้งหมด
           </h2>
 
           <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
             {products.map((product) => (
-              <div key={product.id} className="group relative">
-                <Image
-                  alt={product.imageAlt}
-                  src={product.imageSrc}
-                  width={500}
-                  height={500}
-                  className="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80"
-                />
-                <div className="mt-4 flex justify-between">
-                  <div>
-                    <h3 className="text-sm text-gray-700">
-                      <a href={product.href}>
-                        <span aria-hidden="true" className="absolute inset-0" />
-                        {product.name}
-                      </a>
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {product.color}
-                    </p>
+              <div key={product._id} className="group relative">
+                <Link href={`/product/${product._id}`} className="block">
+                  <div className="aspect-square w-full overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75 lg:aspect-auto lg:h-80">
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.name}
+                      width={500}
+                      height={500}
+                      className="h-full w-full object-cover object-center"
+                    />
                   </div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {product.price}
-                  </p>
-                </div>
+                  <div className="mt-4 flex justify-between">
+                    <div>
+                      <h3 className="text-sm text-gray-700">
+                        {product.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {product.category}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        ฿{product.price.toLocaleString()}
+                      </p>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {product.stock > 0 ? `คงเหลือ ${product.stock}` : 'สินค้าหมด'}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>
