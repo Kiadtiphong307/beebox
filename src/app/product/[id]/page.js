@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { StarIcon } from '@heroicons/react/20/solid';
-import { ShieldCheckIcon, TruckIcon } from '@heroicons/react/24/outline';
+import { ShieldCheckIcon, TruckIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 
 export default function ProductDetail({ params }) {
   const [product, setProduct] = useState(null);
@@ -27,6 +27,30 @@ export default function ProductDetail({ params }) {
 
     fetchProduct();
   }, [params.id]);
+
+  const addToCart = () => {
+    try {
+      // ดึงข้อมูลตะกร้าปัจจุบันจาก localStorage
+      const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+      
+      // ตรวจสอบว่าสินค้ามีในตะกร้าแล้วหรือไม่
+      const existingItemIndex = currentCart.findIndex(item => item._id === product._id);
+      
+      if (existingItemIndex !== -1) {
+        // ถ้ามีสินค้าอยู่แล้ว เพิ่มจำนวนตามที่เลือก
+        currentCart[existingItemIndex].quantity += quantity;
+      } else {
+        // ถ้ายังไม่มีสินค้า เพิ่มสินค้าใหม่พร้อมจำนวน
+        currentCart.push({ ...product, quantity });
+      }
+      
+      // บันทึกลง localStorage
+      localStorage.setItem('cart', JSON.stringify(currentCart));
+      alert('เพิ่มสินค้าลงตะกร้าแล้ว');
+    } catch (error) {
+      alert('เกิดข้อผิดพลาดในการเพิ่มสินค้า');
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">
@@ -142,13 +166,12 @@ export default function ProductDetail({ params }) {
             {/* ปุ่มเพิ่มลงตะกร้า */}
             <div className="mt-8">
               <button
+                onClick={addToCart}
                 className="w-full bg-blue-600 text-white py-3 px-8 rounded-md hover:bg-blue-700 disabled:bg-gray-400 
                           transition-colors duration-200 flex items-center justify-center space-x-2"
                 disabled={product.stock === 0}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                </svg>
+                <ShoppingCartIcon className="h-5 w-5" />
                 <span>{product.stock > 0 ? 'เพิ่มลงตะกร้า' : 'สินค้าหมด'}</span>
               </button>
             </div>
